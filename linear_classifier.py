@@ -1,53 +1,12 @@
+# original: https://machinelearningmastery.com/implement-logistic-regression-stochastic-gradient-descent-scratch-python/
+# my avg result for sgd: 66.016%
+# my avg result for batch: 56.748%
 # Logistic Regression on Diabetes Dataset
-from random import seed
-from random import randrange
+import random
+import numpy as np
 from csv import reader
 from math import exp
-
-# Load a CSV file
-def load_csv(filename):
-    dataset = list()
-    with open(filename, 'r') as file:
-        csv_reader = reader(file)
-        for row in csv_reader:
-            if not row:
-                continue
-            dataset.append(row)
-    return dataset
-
-# Convert string column to float
-def str_column_to_float(dataset, column):
-    for row in dataset:
-        row[column] = float(row[column].strip())
-
-# Find the min and max values for each column
-def dataset_minmax(dataset):
-    minmax = list()
-    for i in range(len(dataset[0])):
-        col_values = [row[i] for row in dataset]
-        value_min = min(col_values)
-        value_max = max(col_values)
-        minmax.append([value_min, value_max])
-    return minmax
-
-# Rescale dataset columns to the range 0-1
-def normalize_dataset(dataset, minmax):
-    for row in dataset:
-        for i in range(len(row)):
-            row[i] = (row[i] - minmax[i][0]) / (minmax[i][1] - minmax[i][0])
-
-# Split a dataset into k folds
-def cross_validation_split(dataset, n_folds):
-    dataset_split = list()
-    dataset_copy = list(dataset)
-    fold_size = int(len(dataset) / n_folds)
-    for i in range(n_folds):
-        fold = list()
-        while len(fold) < fold_size:
-            index = randrange(len(dataset_copy))
-            fold.append(dataset_copy.pop(index))
-        dataset_split.append(fold)
-    return dataset_split
+from sklearn.preprocessing import MinMaxScaler
 
 # Calculate accuracy percentage
 def accuracy_metric(actual, predicted):
@@ -57,68 +16,76 @@ def accuracy_metric(actual, predicted):
             correct += 1
     return correct / float(len(actual)) * 100.0
 
-# Evaluate an algorithm using a cross validation split
-def evaluate_algorithm(dataset, algorithm, n_folds, *args):
-    folds = cross_validation_split(dataset, n_folds)
-    scores = list()
-    for fold in folds:
-        train_set = list(folds)
-        train_set.remove(fold)
-        train_set = sum(train_set, [])
-        test_set = list()
-        for row in fold:
-            row_copy = list(row)
-            test_set.append(row_copy)
-            row_copy[-1] = None
-        predicted = algorithm(train_set, test_set, *args)
-        actual = [row[-1] for row in fold]
-        accuracy = accuracy_metric(actual, predicted)
-        scores.append(accuracy)
-    return scores
-
 # Make a prediction with coefficients
-def predict(row, coefficients):
-    yhat = coefficients[0]
-    for i in range(len(row)-1):
-        yhat += coefficients[i + 1] * row[i]
-    return 1.0 / (1.0 + exp(-yhat))
+def predict(w, x):
+    return 1.0 / (1.0 + exp(-np.dot(w, x)))
 
 # Estimate logistic regression coefficients using stochastic gradient descent
-def coefficients_sgd(train, l_rate, n_epoch):
-    coef = [0.0 for i in range(len(train[0]))]
+def coefficients_sgd(train_x, train_y, l_rate, n_epoch):
+    w = [0.0 for i in range(len(train_x[0]))]
     for epoch in range(n_epoch):
-        for row in train:
-            yhat = predict(row, coef)
-            error = row[-1] - yhat
-            coef[0] = coef[0] + l_rate * error * yhat * (1.0 - yhat)
-            for i in range(len(row)-1):
-                coef[i + 1] = coef[i + 1] + l_rate * error * yhat * (1.0 - yhat) * row[i]
-    return coef
+        for i in range(len(train_y)):
+            np.insert(train_x[i], 0, 1.0)
+            yhat = predict(w, train_x[i]) # probability of it being +1
+            error = train_y[i] - yhat # define loss function here
+            w = w + l_rate * error * yhat * (1 - yhat) * train_x[i]
+    return w
+
+def coefficients_batch(train_x, train_y, l_rate, n_epoch):
+    w = [0.0 for i in range(len(train_x[0]))]
+    for epoch in range(n_epoch):
+        summation = 0
+        for i in range(len(train_y)):
+            np.insert(train_x[i], 0, 1.0)
+            yhat = predict(w, train_x[i])
+            summation = summation + (train_y[i] - yhat)*train_x[i]
+        w = w + l_rate * summation
+    return w
 
 # Linear Regression Algorithm With Stochastic Gradient Descent
-def logistic_regression(train, test, l_rate, n_epoch):
+def logistic_regression(train_x, train_y, test_x, l_rate, n_epoch):
     predictions = list()
-    coef = coefficients_sgd(train, l_rate, n_epoch)
-    for row in test:
-        yhat = predict(row, coef)
+    coef = coefficients_batch(train_x, train_y, l_rate, n_epoch)
+    for x in test_x:
+        yhat = predict(x, coef)
         yhat = round(yhat)
         predictions.append(yhat)
     return(predictions)
 
+# Evaluate an algorithm using a cross validation split
+def evaluate_algorithm(x, y, algorithm, n_folds, *args):
+    fold_size = int(len(dataset) / n_folds)
+    scores = list()
+    for i in range(n_folds):
+        idx = random.sample(range(len(y)), fold_size)
+        train_x = x[idx]
+        train_y = y[idx]
+        test_x = np.delete(x, idx, axis=0)
+        test_y = np.delete(y, idx, axis=0)
+
+        predicted = algorithm(train_x, train_y, test_x, *args)
+        accuracy = accuracy_metric(test_y, predicted)
+        scores.append(accuracy)
+    return scores
+
 # Test the logistic regression algorithm on the diabetes dataset
-seed(1)
+random.seed(1)
+
 # load and prepare data
 filename = 'pima-indians-diabetes.csv'
-dataset = load_csv(filename)
-for i in range(len(dataset[0])):
-    str_column_to_float(dataset, i)
+dataset = np.genfromtxt(filename, delimiter=',')
+np.array(dataset).astype(float)
+split = np.split(dataset, [-1], axis=1)
+x = split[0]
+y = np.ndarray.flatten(split[1])
+
 # normalize
-minmax = dataset_minmax(dataset)
-normalize_dataset(dataset, minmax)
+x = MinMaxScaler().fit_transform(x)
+
 # evaluate algorithm
 n_folds = 5
 l_rate = 0.1
 n_epoch = 100
-scores = evaluate_algorithm(dataset, logistic_regression, n_folds, l_rate, n_epoch)
+scores = evaluate_algorithm(x, y, logistic_regression, n_folds, l_rate, n_epoch)
 print('Scores: %s' % scores)
-print('Mean Accuracy: %.3f%%' % (sum(scores)/float(len(scores))))
+print('Mean Accuracy: %.3f%%' % np.mean(scores))
