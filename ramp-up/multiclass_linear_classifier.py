@@ -1,5 +1,4 @@
 # original: https://machinelearningmastery.com/implement-logistic-regression-stochastic-gradient-descent-scratch-python/
-# Multiclass Logistic Regression on Diabetes Dataset
 import random
 import numpy as np
 from csv import reader
@@ -8,11 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 # Calculate accuracy percentage
 def accuracy_metric(actual, predicted):
-    correct = 0
-    for i in range(len(actual)):
-        if actual[i] == predicted[i]:
-            correct += 1
-    return correct / float(len(actual)) * 100.0
+    return sum(actual == predicted) / float(len(actual)) * 100.0
 
 # Make a prediction with coefficients
 def predict(w, x):
@@ -28,7 +23,7 @@ def coefficients_sgd(train_x, train_y, l_rate, n_epoch, n_cats):
             for cat in range(n_cats): # calculate the prediction for each of the cats
                 yhat = predict(w[cat], train_x[i]) # probability of it being category cat
                 error = (train_y[i] == cat) - yhat # define loss function here
-                w[cat] = w[cat] + l_rate * error * yhat * (1 - yhat) * train_x[i]
+                w[cat] = w[cat] + l_rate * error * train_x[i]
         print(epoch)
     return w
 

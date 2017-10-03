@@ -10,11 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 # Calculate accuracy percentage
 def accuracy_metric(actual, predicted):
-    correct = 0
-    for i in range(len(actual)):
-        if actual[i] == predicted[i]:
-            correct += 1
-    return correct / float(len(actual)) * 100.0
+    return sum(actual == predicted) / float(len(actual)) * 100.0
 
 # Make a prediction with coefficients
 def predict(w, x):
@@ -27,7 +23,7 @@ def coefficients_sgd(train_x, train_y, l_rate, n_epoch):
         for i in range(len(train_y)):
             yhat = predict(w, train_x[i]) # probability of it being +1
             error = train_y[i] - yhat # define loss function here
-            w = w + l_rate * error * yhat * (1 - yhat) * train_x[i]
+            w = w + l_rate * error * train_x[i]
     return w
 
 def coefficients_batch(train_x, train_y, l_rate, n_epoch):
