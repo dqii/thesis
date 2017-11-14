@@ -1,0 +1,4 @@
+classifier.ipynb is the most general classifier I made
+datasets to be used are found in ./dataset
+loss functions that can be used are found in ./learning_algs
+multiclass_linear_classifier.py and linear_classifier.py are my first attempts at classifiers and could probably be ignored
