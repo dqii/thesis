@@ -1,0 +1,12 @@
+
+>> learning has my current code that i'm happy with
+my best classifier to date can be found in ./learning_algs
+use it through interface.ipynb
+datasets to be used are found in ./dataset on local repository 
+loss functions that can be used are found in algs.py
+
+>> in the previous folder there is my old code in various stages
+multiclass_linear_classifier.py and linear_classifier.py are my first attempts at classifiers and could probably be ignored
+I tried to combine them with classifier.ipynb is the most general classifier I made
+
+I played around with a synthetic data generator in test_data_generator
