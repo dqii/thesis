@@ -1,0 +1,50 @@
+\documentclass[a4paper,13pt]{article}
+\usepackage[letterpaper, margin=0.7in]{geometry}
+\usepackage{enumitem}
+\usepackage{enumerate}
+\usepackage{scrextend}
+\usepackage{graphicx}
+\usepackage{amsmath, amsthm}
+\usepackage{amsfonts}
+\usepackage{bbm}
+\usepackage{hyperref}
+
+\begin{document}
+
+\section*{Problem 1}
+
+Let $\max$ be the element-wise maximum, $\lambda > 0$. Show that if
+$$w^* = \min_{w \in \mathbb{R}^n} \frac{1}{m} \sum_{i=1}^m l(y_i, w x_i) + \frac{\lambda}{2} \left\Vert w \right\Vert_2^2$$
+where $l$ is convex, then $w^* \in \text{span}(\left\{ x_i \right\}_{i=1}^m)$. This means that for a high-dimensional data matrix of low rank, we can reduce the dimensionality of the data matrix without changing the corresponding weights.
+\\\\
+\textbf{Proof} Suppose for the sake of contradiction that $w^* = \sum_{i=1}^n a_i x_i + u$, where $a_i$ are constants and $u$ is some nonzero vector orthogonal to $\text{span}(\left\{ x_i \right\}_{i=1}^m)$. Let $w = \sum_{i=1}^n a_i x_i$. By the orthogonality of $u$, (1) $w^* x_i = w x_i$ for all $i$, so $l(y_i, w^* x) = l(y_i, w x)$ and (2) $\left\Vert w^* \right\Vert_2^2 = \left\Vert w \right\Vert_2^2 + u^2 > \left\Vert w \right\Vert_2^2$, contradicting that $w^*$ minimizes the regularized loss.
+
+\section*{Problem 2} 
+Let $\Pi_K$ denote the projection operation onto the set $K$. We wish to show using Lagrange multipliers that if we have a constrained set $K$, and convex function $f$, then $x^*$ minimizes $f$ over $K$ iff $\Pi_K \left[ x^* - \nabla f(x^*) \right] = x^*$.
+\\\\
+\textbf{Proof}
+Suppose $K$ does not contain the unconstrained global minimum. Then for all $x \in K$, $\nabla f(x) \neq 0$. Then $f$ must be monotonic along any line through $K$, so there must be some $x^*$ on the boundary of $K$ that minimizes $f$. Let $g(x) = c$ define the boundary of $K$. 
+\\\\
+First we show that if $x^*$ minimizes $f$ over $K$, then $\Pi_K (x^* - \lambda \nabla g(x^*)) = x^*$. We have by the Lagrangian multiplier condition that the solution $x^*$ satisfies $\nabla f(x^*) = \lambda \nabla g(x^*)$. If $x^*$ is the constrained minimum, observe that $\Pi_K (x^* - \nabla f(x^*)) = \Pi_K (x^* - \lambda \nabla g(x^*))$. It must be the case that $\lambda \leq 0$. Suppose for the sake of contradiction that $\lambda > 0$. By convexity $f(x) \geq f(x^*) + \nabla f(x^*) (x-x^*)$ for any $x \in K$. Since $f(x^*)$ is a minimum, 
+$$\nabla f(x^*) (x-x^*) \geq 0$$
+We can show that $\nabla g(x^*)$ is a supporting hyperplane, so 
+$$\nabla g(x^*) (x-x^*) \leq 0$$
+for any $x \in K$ But $\nabla f(x^*) (x-x^*) = \lambda \nabla g(x^*) (x-x^*) \leq 0$, and $\nabla f(x) \neq 0$, a contradiction. Thus $\lambda \leq 0$. Then $\Pi_K (x^* - \nabla f(x^*)) = \Pi_K (x^* - \lambda \nabla g(x^*)) = x^*$ by the orthogonality of $\nabla g(x^*)$.
+\\\\
+Next we show the reverse implication also holds. If $\Pi_K \left[ x^* - \nabla f(x^*) \right] = x^*$, $x^*$ must be on the boundary of $K$ and by the Pythagorean theorem $\nabla f(x^*) = \lambda \nabla g(x^*)$ for some $\lambda \leq 0$. Then the convexity of $f$ and that $\nabla g(x)$ is a supporting hyperplane gives us for any $x \in K$ 
+$$f(x) \geq f(x^*) + \nabla f(x^*) (x - x^*) = f(x^*) + \lambda \nabla g(x^*) (x - x^*) \geq f(x^*)$$
+and we are done.
+\\\\
+Suppose $K$ contains the unconstrained global minimum $x^*$. Then we must have $\nabla f(x^*) = 0$, so $\Pi_K \left[ x^* - \nabla f(x^*) \right] = x^*$. Conversely, if $\Pi_K \left[ x^* - \nabla f(x^*) \right] = x^*$, then $x^* - \nabla f(x^*) \not\in K$. Then $x^*$ must be on the boundary of $K$ by the Pythagorean theorem, and by the above arguments $x^*$ is the minimum of $f$ over $K$.
+
+
+\section{Show that $\nabla g(x^*)$ is a supporting hyperplane}
+
+\textbf{Supporting Hyperplane Theorem} For a nonempty convex set $C$, if $x$ is on the boundary of $C$, then there exists a supporting hyperplane of $C$ passing through $x$. In other words, there is a vector $a \in \mathbb{R}^n, a \neq 0$ such that $\sup_{z \in C} a^T z \leq a^T x$.
+\\\\
+\textbf{Proof} For a sequence $\left\{ x_k \right\} \not\subseteq C$ such that $x_k \rightarrow x$, where $x$ is a point on the boundary of $C$, and a sequence of projections $\left\{ z_k \right\}$ of $x_k$ on the set $C$, $a_k = \frac{x_k - z_k}{\lVert x_k - z_k \rVert}$ converges to a supporting hyperplane. No points of the form $x^* + \epsilon \nabla g(x^*), \epsilon > 0$ are in $C$, as $\nabla g(x^*) (x^* + \epsilon \nabla g(x^*)) = \nabla g(x^*) x^* + \epsilon \lVert \nabla g(x^*) \rVert^2 \geq 0$. Then we can construct a sequence $\left\{ x_k = x^* + \epsilon_k \nabla g(x^*) \right\}$ such that $x_k \rightarrow x^*$. Let $z_k$ be the projection of $x_k$ on the set $C$ for each $k$. Clearly, $a = \frac{x_k - z_k}{\lVert x_k - z_k \rVert} = \frac{\nabla g(x^*)}{\lVert g(x^*) \rVert}$ for all $k$. 
+\\\\
+\textbf{Citation:} \url{http://www.ifp.illinois.edu/~angelia/L7_separationthms.pdf} \\
+The proof is mostly from this link. I added the note about $a = \nabla g(x^*)$ satisfying the theorem (It is somewhat obvious, admittedly).
+
+\end{document}
