@@ -68,5 +68,5 @@ def triplet_acc(features, classes):
     inner_products = tf.reduce_sum(tf.multiply(f1, f2 - f3), axis=1)    
     return tf.reduce_mean(tf.cast(tf.greater(inner_products, 0), tf.float32))
 
-Triplet_Hinge_Settings = Settings(triplet_hinge_loss, pair_acc)
-Triplet_Log_Settings = Settings(triplet_log_loss, pair_acc)
+Triplet_Hinge_Settings = Settings(triplet_hinge_loss, triplet_acc)
+Triplet_Log_Settings = Settings(triplet_log_loss, triplet_acc)

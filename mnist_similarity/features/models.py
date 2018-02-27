@@ -16,12 +16,12 @@ def reg_loss_fn(W):
     return tf.nn.l2_loss(W['wd1']) + tf.nn.l2_loss(W['wd2']) + tf.nn.l2_loss(W['out'])
 
 class ConvModelSmall(object):
-    def __init__(self, x, y, p, settings, parameters):
+    def __init__(self, x, y, num_features, settings, lr, reg, dropout):
         """ init the model with hyper-parameters etc """
         self.x = x
         self.y = y
-        self.p = p
-        num_features, lr, reg, _ = parameters
+        self.num_features = num_features
+        self.dropout = dropout        
         
         initializer = tf.contrib.layers.xavier_initializer(uniform=False)
         self.weights = {
@@ -46,11 +46,8 @@ class ConvModelSmall(object):
             self.optimizer = tf.train.AdamOptimizer(lr)
             
         self.features = self.feature_model()
-        
-        self.loss = settings.loss(self.features, self.y) + reg * reg_loss_fn(self.weights)
         self.acc = settings.acc(self.features, self.y)
-        self.metrics = self.loss, self.acc
-        
+        self.loss = settings.loss(self.features, self.y) + reg * reg_loss_fn(self.weights)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
             self.optimize = tf.train.AdamOptimizer(lr).minimize(self.loss)
@@ -60,11 +57,11 @@ class ConvModelSmall(object):
         input = tf.reshape(self.x, shape=[-1, 28, 28, 1])
 
         conv1 = conv2d('conv1', input, self.weights['wc1'], self.biases['bc1'], 2)
-        conv1 = tf.nn.dropout(conv1, self.p)
+        conv1 = tf.nn.dropout(conv1, self.dropout)
         conv2 = conv2d('conv2', conv1, self.weights['wc2'], self.biases['bc2'], 2)
-        conv2 = tf.nn.dropout(conv2, self.p)
+        conv2 = tf.nn.dropout(conv2, self.dropout)
         conv3 = conv2d('conv3', conv2, self.weights['wc3'], self.biases['bc3'], 2)
-        conv3 = tf.nn.dropout(conv3, self.p)
+        conv3 = tf.nn.dropout(conv3, self.dropout)
 
         dense1 = tf.reshape(conv3, [-1, self.weights['wd1'].get_shape().as_list()[0]])
         dense1 = fc_batch_relu(dense1, self.weights['wd1'], self.biases['bd1'])
@@ -74,13 +71,11 @@ class ConvModelSmall(object):
         return out
     
 class ConvModelMedium(object):
-    def __init__(self, x, y, num_features, loss_fn, acc_fn, lr, reg, dropout):
+    def __init__(self, x, y, num_features, settings, lr, reg, dropout):
         """ init the model with hyper-parameters etc """
         self.x = x
         self.y = y
         self.num_features = num_features
-        self.loss_fn = loss_fn
-        self.acc_fn = acc_fn
         self.dropout = dropout        
         
         initializer = tf.contrib.layers.xavier_initializer(uniform=False)
@@ -104,8 +99,8 @@ class ConvModelMedium(object):
             self.optimizer = tf.train.AdamOptimizer(lr)
             
         self.features = self.feature_model()
-        self.acc = acc_fn(self.features, self.y)
-        self.loss = loss_fn(self.features, self.y) + reg * reg_loss_fn(self.weights)
+        self.acc = settings.acc(self.features, self.y)
+        self.loss = settings.loss(self.features, self.y) + reg * reg_loss_fn(self.weights)
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
             self.optimize = tf.train.AdamOptimizer(lr).minimize(self.loss)
