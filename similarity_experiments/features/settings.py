@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 
 # ====== SETTINGS CLASS ======
@@ -39,7 +40,7 @@ def pair_log_loss(features, classes):
     inner_products = tf.reduce_sum(tf.multiply(f1, f2), axis=1)
     similarities = tf.sign(tf.cast(tf.equal(c1, c2), tf.float32) - 0.5)
     scores = tf.multiply(similarities, inner_products)
-    return tf.reduce_mean(tf.log1p(scores))
+    return tf.reduce_mean(tf.log1p(-scores))
 
 def pair_acc(features, classes):
     f1, f2, c1, c2 = pair_split(features, classes)
