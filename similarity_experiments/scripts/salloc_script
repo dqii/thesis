@@ -1,0 +1,7 @@
+salloc -N 1 --ntasks-per-node=4 --ntasks-per-socket=2 --cpus-per-task=3 --gres=gpu:1 -t 0-01:00:00 --mem=192000
+
+module load anaconda
+module load cudatoolkit/8.0 cudnn/cuda-8.0/6.0
+source activate py36
+export XDG_RUNTIME_DIR=""
+jupyter notebook --no-browser --port=8889 --ip=0.0.0.0
