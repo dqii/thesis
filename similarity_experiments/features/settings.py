@@ -71,3 +71,19 @@ def triplet_acc(features, classes):
 
 Triplet_Hinge_Settings = Settings(triplet_hinge_loss, triplet_acc)
 Triplet_Log_Settings = Settings(triplet_log_loss, triplet_acc)
+
+# ===== TRIPLES DISTANCE FUNCTION =====
+
+def triplet_hinge_loss_distance(features, classes):
+    f1, f2, f3 = tf.split(features, 3)
+    f1_to_f2 = tf.reduce_sum(tf.square(f1 - f2),axis=1)
+    f1_to_f3 = tf.reduce_sum(tf.square(f1 - f3),axis=1)
+    return tf.reduce_mean(tf.maximum(1.0 - f1_to_f3 + f1_to_f2, 0))
+
+def triplet_acc_distance(features, classes):
+    f1, f2, f3 = tf.split(features, 3)
+    f1_to_f2 = tf.reduce_sum(tf.square(f1 - f2),axis=1)
+    f1_to_f3 = tf.reduce_sum(tf.square(f1 - f3),axis=1)
+    return tf.reduce_mean(tf.cast(tf.greater(f1_to_f3, f1_to_f2), tf.float32))
+
+Triplet_Distance_Settings = Settings(triplet_hinge_loss_distance, triplet_acc_distance)
